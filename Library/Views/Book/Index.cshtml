@@ -1,0 +1,316 @@
+﻿@model IEnumerable<Library.Models.BookHelperModels.BookHelperModel>
+@using Library.Service
+@using Microsoft.AspNetCore.Identity;
+
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Here is list of Books</h2>
+
+<div class="top-buffer"></div>
+<div class="panel panel-primary">
+    <div class="panel-heading panel-head">Books not reserved</div>
+    <div class="panel-body">
+        <div class="top-buffer"></div>
+        <table class="table table-bordered table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Writer</th>
+                    <th>Gener</th>
+                    <th>Published</th>
+                    <th>Published</th>
+                    @*<th>Start Date</th>
+                    <th>End Date</th>*@
+                    @if ( User.IsInRole("Student"))
+                    {
+                        <th>Action</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Name)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Writer)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Gener)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Published)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Publisher)
+                        </td>
+                        <td>
+                            @if (User.IsInRole("Student"))
+                            {
+                                <a class="btn btn-success" onclick="addBorrow('@item.Id')">Borrow requests</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+       
+    </div>
+</div>
+
+
+<div id="placeCreateModalBorrowRequests" class="modal" tabindex="-1" role="dialog"></div>
+
+
+@section Scripts {
+
+    <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    <script src="~/lib/bootbox/bootbox.min.js"></script>
+
+    <script type="text/javascript">
+
+        var success =  @Html.Raw(Json.Serialize(StatusEnum.Success));
+        var failed = @Html.Raw(Json.Serialize(StatusEnum.Failed));
+        var noData = @Html.Raw(Json.Serialize(StatusEnum.NoContent));
+
+        function refreshIndexPage() {
+            window.location.replace('@Url.Action("Index", "Book")');
+        };
+
+
+        @*function getCreateModal() {
+         $.ajax({
+            url: '@Url.Action("Create", "Book")',
+            type: 'get',
+            success: function (result) {
+                $('#placeCreateModalBook').html(result);
+                $('#placeCreateModalBook').modal('show');
+                $("#book_form").validate({
+                    rules: {
+                        Name: "required",
+                        Writer: "required",
+                        Gener: "required",
+                        Published: "required",
+                        Publisher: "required",
+                        StatusName: "required",
+               
+                    },
+                    messages: {
+                        Name: "Please specify your name",
+                        Writer: "Please specify your writer",
+                        Gener: "Please your gener",
+                        Published: "Please your published",
+                        Publisher: "Please your publisher",
+                 
+                    },
+                    errorClass: "text-danger",
+                    submitHandler: function (form) {
+                        var data = new FormData(form);
+                        bootbox.dialog({
+                            message: '<p class="text-center mb-0"><i class="fa fa-spin fa-spinner"></i></p>',
+                            closeButton: false,
+                            animate: false
+                        });
+                        $('#placeCreateModalBook').modal('hide'); //sakrije modal posle kreiranja
+
+                        $.ajax({
+                            url: '/Book/Create', // URL akcije na controller
+                            type: 'post', //metoda
+                            processData: false,
+                            contentType: false,
+                            data: data,
+                            success: function (result) { //udje ako je dobio bilo kakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: result.message,
+                                    callback: function () {
+                                        location.href = '/Book/Index'; // promeni URL, gadja drugu stranicu
+                                    }
+                                })
+                            },
+                            error: function (err) { // on ce da udje samo ako nije dobio nikakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: "error",
+                                    callback: function () {
+                                        location.href = '/Book/Index';
+                                    }
+                                })
+                            }
+                        });
+
+                    }
+
+                });
+            }
+        });
+         }*@
+
+        //function getEdit(id) {
+        //    $.ajax({
+        //        url: '/Book/Edit?id=' + id,
+        //        type: 'get',
+        //        success: function (result) {
+        //            $('#placeEditModalBook').html(result);
+        //            $('#placeEditModalBook').modal('show');
+        //            $("#edit_book_form").validate({
+        //                rules: {
+        //                    Name: "required",
+        //                    Writer: "required",
+        //                    Gener: "required",
+        //                    Published: "required",
+        //                    Publisher: "required",
+                   
+        //                },
+        //                messages: {
+        //                    Name: "Please specify your name",
+        //                    Writer: "Please specify your writer",
+        //                    Gener: "Please your gener",
+        //                    Published: "Please your published",
+        //                    Publisher: "Please your publisher",
+                        
+        //                },
+        //                errorClass: "text-danger",
+        //                submitHandler: function (form) {
+        //                    var data = new FormData(form);
+        //                    bootbox.dialog({
+        //                        message: '<p class="text-center mb-0"><i class="fa fa-spin fa-spinner"></i></p>',
+        //                        closeButton: false,
+        //                        animate: false
+        //                    });
+        //                    $('#placeEditModalBook').modal('hide');
+
+        //                    $.ajax({
+        //                        url: '/Book/Edit?=' + id,
+        //                        type: 'post',
+        //                        processData: false,
+        //                        contentType: false,
+        //                        data: data,
+        //                        success: function (result) {
+        //                            bootbox.hideAll();
+        //                            bootbox.alert({
+        //                                message: result.message,
+        //                                callback: function () {
+        //                                    location.href = '/Book/Index';
+        //                                }
+        //                            })
+        //                        },
+        //                        error: function (err) {
+        //                            bootbox.hideAll();
+        //                            bootbox.alert({
+        //                                message: "error",
+        //                                callback: function () {
+        //                                    location.href = '/Book/Index';
+        //                                }
+        //                            })
+        //                        }
+        //                    });
+
+        //                }
+
+        //            });
+        //        }
+        //    });
+        //}
+
+        //function deleteBook(id) {
+        //    bootbox.confirm({
+        //        buttons: {
+        //            confirm: {
+        //                label: "OK",
+        //                className: 'btn btn-primary'
+        //            },
+        //            cancel: {
+        //                label: "Cancel",
+        //                className: 'btn btn-default'
+        //            }
+        //        },
+        //        message: "Are you sure want to delete Book?",
+        //        title: "Delete Book",
+        //        closeButton: false,
+        //        callback: function (response) {
+        //            if (response) {
+        //                $.ajax({
+        //                    url: '/Book/Delete',// URL akcije na controller
+        //                    type: 'post', //metoda
+        //                    data: {
+        //                        id: id
+        //                    },
+        //                    success: function (result) { //udje ako je dobio bilo kakvu povratnu inf
+        //                        bootbox.hideAll();
+        //                        bootbox.alert({
+        //                            message: result.message,
+        //                            callback: function () {
+        //                                location.href = '/Book/Index'; // promeni URL, gadja drugu stranicu
+        //                            }
+        //                        })
+        //                    },
+        //                    error: function (err) { // on ce da udje samo ako nije dobio nikakvu povratnu inf
+        //                        bootbox.hideAll();
+        //                        bootbox.alert({
+        //                            message: "error",
+        //                            callback: function () {
+        //                                location.href = '/Book/Index';
+        //                            }
+        //                        })
+        //                    }
+        //                });
+        //            }
+        //        }
+        //    })
+        //}
+
+        function addBorrow(id) {
+        bootbox.confirm({
+            message: "Are you sure you want to add borrows",
+            buttons: {
+                confirm: {
+                    label: 'Yes',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                console.log(result);
+                if (result) {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("AddBorrowsBook", "Book")',
+                        data: {
+                            Id: id
+                        }
+                    }).done(function (result) {
+                        bootbox.alert({
+                            message: result.message,
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    }).fail(function () {
+                        bootbox.alert({
+                            message: 'Error',
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    });
+                }
+            }
+        });
+        };
+
+
+
+    </script>
+
+
+}

@@ -1,0 +1,150 @@
+﻿@model IEnumerable<Library.Models.BorrowRequestsHelperModels.BorrowRequestsHelperModel>
+@using Library.Service;
+@using Microsoft.AspNetCore.Identity
+
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="top-buffer"></div>
+<div class="panel panel-primary">
+    <div class="panel-body">
+        <div class="top-buffer"></div>
+        <table class="table table-bordered table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th>Book</th>
+                    <th>User</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    @*<th>Status</th>*@
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Book)</td>
+                        <td>@Html.DisplayFor(modelItem => item.User)</td>
+                        <td>@Html.DisplayFor(modelItem => item.StartDate)</td>
+                        <td>@Html.DisplayFor(modelItem => item.EndDate)</td>
+                        @*<td>@Html.DisplayFor(modelItem => item.Status)</td>*@
+                            <td>
+                                <a class="btn btn-success" visible="true"  onclick="acceptRequest('@item.Id')">Accept</a>
+                                <a class="btn btn-danger" visible="true"  onclick="declineRequest('@item.Id')">Decline</a>
+                            </td>
+                       
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+<script src="~/lib/bootbox/bootbox.min.js"></script>
+
+<script type="text/javascript">
+
+    var success = @Html.Raw(Json.Serialize(StatusEnum.Success));
+    var failed = @Html.Raw(Json.Serialize(StatusEnum.Failed));
+    var noData = @Html.Raw(Json.Serialize(StatusEnum.NoContent));
+
+    function refreshIndexPage() {
+    window.location.replace('@Url.Action("Index", "BorrowRequests")');
+    };
+
+    function acceptRequest(id) {
+        bootbox.confirm({
+            message: "Are you sure you want to accept this request?",
+            buttons: {
+                confirm: {
+                    label: 'Yes',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                console.log(result);
+                if (result) {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("AcceptRequest", "BorrowRequests")',
+                        data: {
+                            Id: id,
+                            StatusId: 12
+                        }
+                    }).done(function (result) {
+                        bootbox.alert({
+                            message: result.message,
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    }).fail(function () {
+                        bootbox.alert({
+                            message: 'Error',
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    });
+                }
+            }
+        });
+    };
+
+
+    function declineRequest(id) {
+        bootbox.confirm({
+            message: "Are you sure you want to decline this request?",
+            buttons: {
+                confirm: {
+                    label: 'Yes',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                console.log(result);
+                if (result) {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("DeclineRequest", "BorrowRequests")',
+                        data: {
+                            Id: id,
+                            StatusId: 13
+                        }
+                    }).done(function (result) {
+                        bootbox.alert({
+                            message: result.message,
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    }).fail(function () {
+                        bootbox.alert({
+                            message: result.message,
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    });
+                }
+            }
+        });
+     };
+
+
+
+</script>
